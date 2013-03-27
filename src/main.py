@@ -11,11 +11,13 @@ import getpass
 import time
 from ircutils import bot, format
 import dokuwikixmlrpc
+from datetime import datetime
 
 #Global Vars
 joinDict = {}   #Dictionary containing the last join time of users
 msgQ = []       #Queue containing the last 5 messages received in the channel the bot resides in
 userList = []   #List of the users
+
 
 bufsize = 0
 userFile = open('userlist.txt', 'r')
@@ -30,17 +32,37 @@ def update_list(new_list):
     for item in new_list:
         userFile.write(item + '\n')
     userFile.close()
+    
+    
+    
+#Record Class (records times)
+#Should probably be moved to another file
+class Record:
+    def login(self, user, time):
+        #Do whatever
+        return
+    def logout(self, user, time):
+        #Do whatever
+        return
         
 
 
 #AdminBot is a customized IRC bot that listens for certain behaviors in an IRC channel and can respond to commands given by administrator
-#The "administrator" is currently hardcoded as "astanton" username                
+             
             
 class AdminBot(bot.SimpleBot):
     
+    #Gets called when a user joins the chat
     def on_join(self, event):
         if event.source != self.nickname:
             self.send_message(event.target, "Welcome, " + event.source + "!")
+        Record.login(event.source, datetime.now())
+        return
+    
+    #Gets called when a user leaves chat
+    def on_quit(self, event):
+        Record.logout(event.source, datetime.now())
+        return
         
     def on_private_message(self, event):
         msg = event.message.split()
@@ -83,4 +105,10 @@ if __name__ == "__main__":
     # Start running the bot
     adminBot.start()
 
+
+
+
+   
+
+    
 
