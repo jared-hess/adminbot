@@ -32,10 +32,12 @@ class Record:
 class RoomBot(bot.SimpleBot):
     #Gets called when a user joins the chat
     def on_join(self, event):
+        #Passes user and login time to be recorded
         Record.login(event.source, datetime.now())
         return
     #Gets called when a user leaves chat
     def on_quit(self, event):
+        #Passes user and logout time to be recorded
         Record.logout(event.source, datetime.now())
         return
 
