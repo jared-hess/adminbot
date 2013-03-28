@@ -65,13 +65,14 @@ class AdminBot(bot.SimpleBot):
         #Passes user and logout time to be recorded
         Record.logout(event.source, datetime.now())
         return
-        
+    
+    #Defines how to handle private messages sent to the admin bot
     def on_private_message(self, event):
         msg = event.message.split()
         cmd = msg[0].upper()
         params = msg[1:]
     
-        
+        #Add user command
         if cmd == 'ADDUSER':
             for item in params:
                 if item in userList:
@@ -80,9 +81,9 @@ class AdminBot(bot.SimpleBot):
                     userList.append(item.rstrip())
                     self.send_message(event.source, item + ' was added to list!')   
                 update_list(userList)
-            for item in userList:
-                print(item)
-                      
+
+
+        #Delete user command
         elif cmd == 'DELUSER':
             for item in params:
                 if item in userList:
@@ -91,8 +92,6 @@ class AdminBot(bot.SimpleBot):
                 else:
                     self.send_message(event.source, item + ' was not even in the list!')
                 update_list(userList)
-            for item in userList:
-                print(item)
 
 
 
