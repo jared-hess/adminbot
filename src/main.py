@@ -36,19 +36,19 @@ def update_list(new_list):
 # this function performs a binary search on a list and returns the index of the item searched for
 def search(currentUsers, item):
     low = 0
-	# get the length of the list
-	high = len(currentUsers) - 1
-	while high >= low:
-		# calculate the midpoint of the list
-		mid = low + ((high - low) / 2)
-		if item < currentUsers[mid]:
-			high = mid - 1
-		elif item > currentUsers[mid]:
-			low = mid + 1
-		elif item == currentUsers[mid]:
-			return mid
-	# if user was not found in the list
-	return -1
+    # get the length of the list
+    high = len(currentUsers) - 1
+    while high >= low:
+        # calculate the midpoint of the list
+        mid = low + ((high - low) / 2)
+        if item < currentUsers[mid]:
+            high = mid - 1
+        elif item > currentUsers[mid]:
+            low = mid + 1
+        elif item == currentUsers[mid]:
+            return mid
+    # if user was not found in the list
+    return -1
     
     
 #Record Class (records times)
@@ -125,12 +125,12 @@ class AdminBot(bot.SimpleBot):
         # command to display all users currently logged into the channel
         elif cmd == 'SHOWUSERS':
             
-        	self.send_message(event.source, 'Users currently logged in:\n')
-        	print 'Users currently logged in\n'
-        	
-        	for user in activeUsers:
-        		self.send_message(event.source, user + '\n')
-        		print user
+            self.send_message(event.source, 'Users currently logged in:\n')
+            print 'Users currently logged in\n'
+            
+            for user in activeUsers:
+                self.send_message(event.source, user + '\n')
+                print user
 
 
 
