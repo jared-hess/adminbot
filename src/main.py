@@ -55,10 +55,16 @@ def search(currentUsers, item):
 #Should probably be moved to another file
 class Record:
     def login(self, user, time):
-        #Do whatever
+        #Record login time
+        f = open(user,'a')
+        f.write('Login:' + time + '\n')
+        f.close()
         return
     def logout(self, user, time):
-        #Do whatever
+        #Record logout time
+        f = open(user,'a')
+        f.write('Logout:' + time + '\n')
+        f.close()
         return
         
 
