@@ -17,7 +17,7 @@ from datetime import datetime
 joinDict = {}   #Dictionary containing the last join time of users
 msgQ = []       #Queue containing the last 5 messages received in the channel the bot resides in
 userList = []   #List of the users
-
+activeUsers = [] #list of all users currently logged into the channel
 
 bufsize = 0
 userFile = open('userlist.txt', 'r')
@@ -33,6 +33,22 @@ def update_list(new_list):
         userFile.write(item + '\n')
     userFile.close()
     
+# this function performs a binary search on a list and returns the index of the item searched for
+def search(currentUsers, item):
+    low = 0
+	# get the length of the list
+	high = len(currentUsers) - 1
+	while high >= low:
+		# calculate the midpoint of the list
+		mid = low + ((high - low) / 2)
+		if item < currentUsers[mid]:
+			high = mid - 1
+		elif item > currentUsers[mid]:
+			low = mid + 1
+		elif item == currentUsers[mid]:
+			return mid
+	# if user was not found in the list
+	return -1
     
     
 #Record Class (records times)
@@ -58,12 +74,19 @@ class AdminBot(bot.SimpleBot):
         if event.source != self.nickname:
             self.send_message(event.target, "Welcome, " + event.source + "!")
         Record.login(event.source, datetime.now())
+        # once a user joins the chat, add user name to the activeUser list
+        activeUsers.append(event.source)
+        # sort the list
+        activeUsers.sort(key=str.lower)
         return
     
     #Gets called when a user leaves chat
     def on_quit(self, event):
         #Passes user and logout time to be recorded
         Record.logout(event.source, datetime.now())
+        # search for the user name to delete from the list once the user leaves the chat
+        index = search(activeUsers, event.source)
+        del activeUsers[index]
         return
     
     #Defines how to handle private messages sent to the admin bot
@@ -92,6 +115,16 @@ class AdminBot(bot.SimpleBot):
                 else:
                     self.send_message(event.source, item + ' was not even in the list!')
                 update_list(userList)
+        
+        # command to display all users currently logged into the channel
+        elif cmd == 'SHOWUSERS':
+            
+        	self.send_message(event.source, 'Users currently logged in:\n')
+        	print 'Users currently logged in\n'
+        	
+        	for user in activeUsers:
+        		self.send_message(event.source, user + '\n')
+        		print user
 
 
 
