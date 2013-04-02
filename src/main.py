@@ -53,17 +53,17 @@ def search(currentUsers, item):
     
 #Record Class (records times)
 #Should probably be moved to another file
-class Record:
+class Record():
     def login(self, user, time):
         #Record login time
         f = open(user,'a')
-        f.write('Login:' + time + '\n')
+        f.write('Login:' + time.strftime('%d%m%Y') + '\n')
         f.close()
         return
     def logout(self, user, time):
         #Record logout time
         f = open(user,'a')
-        f.write('Logout:' + time + '\n')
+        f.write('Logout:' + time.strftime('%d%m%Y') + '\n')
         f.close()
         return
         
@@ -76,10 +76,11 @@ class AdminBot(bot.SimpleBot):
     
     #Gets called when a user joins the chat
     def on_join(self, event):
+        record = Record()
         #Passes user and login time to be recorded
         if event.source != self.nickname:
             self.send_message(event.target, "Welcome, " + event.source + "!")
-        Record.login(event.source, datetime.now())
+        Record.login(record, event.source, datetime.now())
         # once a user joins the chat, add user name to the activeUser list
         activeUsers.append(event.source)
         # sort the list
@@ -88,8 +89,9 @@ class AdminBot(bot.SimpleBot):
     
     #Gets called when a user leaves chat
     def on_quit(self, event):
+        record = Record()
         #Passes user and logout time to be recorded
-        Record.logout(event.source, datetime.now())
+        Record.logout(record, event.source, datetime.now())
         # search for the user name to delete from the list once the user leaves the chat
         index = search(activeUsers, event.source)
         del activeUsers[index]
@@ -125,11 +127,11 @@ class AdminBot(bot.SimpleBot):
         # command to display all users currently logged into the channel
         elif cmd == 'SHOWUSERS':
             
-            self.send_message(event.source, 'Users currently logged in:\n')
+            self.send_message(event.source, 'Users currently logged in:')
             print 'Users currently logged in\n'
             
             for user in activeUsers:
-                self.send_message(event.source, user + '\n')
+                self.send_message(event.source, user)
                 print user
 
 
