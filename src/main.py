@@ -57,13 +57,13 @@ class Record():
     def login(self, user, time):
         #Record login time
         f = open(user,'a')
-        f.write('Login:' + time.strftime('%d%m%Y') + '\n')
+        f.write('Login: ' + time.strftime('%d/%m/%Y %H:%M') + '\n')
         f.close()
         return
     def logout(self, user, time):
         #Record logout time
         f = open(user,'a')
-        f.write('Logout:' + time.strftime('%d%m%Y') + '\n')
+        f.write('Logout: ' + time.strftime('%d/%m/%Y %H:%M') + '\n')
         f.close()
         return
         
