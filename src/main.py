@@ -7,6 +7,7 @@ adminBotName = "admin_bot"              #IRC Bot Name
 adminBotServer = "irc.spotchat.org"     #IRC Server 
 
 #Utility/Framework Imports
+import re
 import getpass
 import time
 from ircutils import bot, format
@@ -70,7 +71,9 @@ class Record():
         return
     
     
+    
 class PrivateMessageHandler():
+    
     def addUser(self, bot, params, event):
         for item in params:
                 if item in userList:
@@ -80,6 +83,9 @@ class PrivateMessageHandler():
                     userList.append(item.rstrip())
                     bot.send_message(event.source, item + ' was added to list!')   
                 update_list(userList)
+                
+                
+                
         
     
     def deleteUser(self, bot, params, event):
@@ -92,6 +98,9 @@ class PrivateMessageHandler():
                 update_list(userList)
         return
     
+    
+    
+    
     def showUsers(self, bot, event):
         bot.send_message(event.source, 'Users currently logged in:')
         print 'Users currently logged in\n'
@@ -100,9 +109,66 @@ class PrivateMessageHandler():
             bot.send_message(event.source, user)
             print user
             
-    def scheduleUser(self, bot, params, event):
-        bot.send_message(event.source, 'Enter schedule for Monday:')
+            
+            
+            
+    def schedule(self, bot, params, event):
+        action = params[0].upper()
+        currentDay = params[2].upper()
         
+        if action == 'ADD':
+            
+            # check syntax of time parameters
+            timeFormat = re.compile(r'[0-2][0-9]\:[0-5][0-9]')
+            #startTime = currentDay + 1
+            #endTime = currentDay + 2
+            if timeFormat.match(params[3]) is None:
+                bot.send_message(event.source, 'Incorrect start time format')
+            else:
+                bot.send_message(event.source, 'Correct start time format')
+            if timeFormat.match(params[4]) is None:
+                bot.send_message(event.source, 'Incorrect end time format')
+            else:
+                bot.send_message(event.source, 'Correct end time format')
+            
+            
+            try:
+                with open(params[1] + 'schedule.txt','r') as scheduleFile:
+                    # read a list of lines into data
+                    fileContents = scheduleFile.readlines()
+                    
+                    # find correct line in file  
+                    for i in xrange(len(fileContents)):   
+                    #for line in fileContents:
+                        if currentDay in fileContents[i]:
+                            print "Found line"
+                            fileContents[i] = currentDay + ' ' + params[3] + ' ' + params[4] + '\n'
+                            print fileContents[i]
+                            
+                            
+                    # and write everything back
+                with open(params[1] + 'schedule.txt', 'w') as scheduleFile:
+                    print fileContents
+                    scheduleFile.writelines( fileContents )
+                    
+            # file does not exist - create it
+            except IOError:
+                days = ['MONDAY\n', 'TUESDAY\n', 'WEDNESDAY\n', 'THURSDAY\n', 'FRIDAY\n', 'SATURDAY\n', 'SUNDAY']
+                with open(params[1] + 'schedule.txt', 'w') as scheduleFile:
+                    scheduleFile.writelines(days)
+                    
+            
+            
+            
+            
+
+
+            
+                
+        
+
+
+
 
 
 #AdminBot is a customized IRC bot that listens for certain behaviors in an IRC channel and can respond to commands given by administrator
@@ -153,8 +219,8 @@ class AdminBot(bot.SimpleBot):
             
             
         # command to display all users currently logged into the channel
-        elif cmd == 'SCHEDULEUSER':
-            PrivateMessageHandler().showUsers(self, params, event)
+        elif cmd == 'SCHEDULE':
+            PrivateMessageHandler().schedule(self, params, event)
             
 
 
