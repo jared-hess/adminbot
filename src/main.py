@@ -51,6 +51,8 @@ def search(currentUsers, item):
     return -1
     
     
+
+    
 #Record Class (records times)
 #Should probably be moved to another file
 class Record():
@@ -66,6 +68,40 @@ class Record():
         f.write('Logout: ' + time.strftime('%d/%m/%Y %H:%M') + '\n')
         f.close()
         return
+    
+    
+class PrivateMessageHandler():
+    def addUser(self, bot, params, event):
+        for item in params:
+                if item in userList:
+                    return "exists"
+                    bot.send_message(event.source, item + ' is already in user list!')
+                else:
+                    userList.append(item.rstrip())
+                    bot.send_message(event.source, item + ' was added to list!')   
+                update_list(userList)
+        
+    
+    def deleteUser(self, bot, params, event):
+        for item in params:
+                if item in userList:
+                    userList.remove(item)
+                    bot.send_message(event.source, item + ' was removed from the list!')
+                else:
+                    bot.send_message(event.source, item + ' was not even in the list!')
+                update_list(userList)
+        return
+    
+    def showUsers(self, bot, event):
+        bot.send_message(event.source, 'Users currently logged in:')
+        print 'Users currently logged in\n'
+            
+        for user in activeUsers:
+            bot.send_message(event.source, user)
+            print user
+            
+    def scheduleUser(self, bot, params, event):
+        bot.send_message(event.source, 'Enter schedule for Monday:')
         
 
 
@@ -105,34 +141,21 @@ class AdminBot(bot.SimpleBot):
     
         #Add user command
         if cmd == 'ADDUSER':
-            for item in params:
-                if item in userList:
-                    self.send_message(event.source, item + ' is already in user list!')
-                else:
-                    userList.append(item.rstrip())
-                    self.send_message(event.source, item + ' was added to list!')   
-                update_list(userList)
-
+            PrivateMessageHandler().addUsers(self, params, event)
 
         #Delete user command
         elif cmd == 'DELUSER':
-            for item in params:
-                if item in userList:
-                    userList.remove(item)
-                    self.send_message(event.source, item + ' was removed from the list!')
-                else:
-                    self.send_message(event.source, item + ' was not even in the list!')
-                update_list(userList)
+            PrivateMessageHandler().deleteUsers(self, params, event)
         
         # command to display all users currently logged into the channel
         elif cmd == 'SHOWUSERS':
+            PrivateMessageHandler().showUsers(self, event)
             
-            self.send_message(event.source, 'Users currently logged in:')
-            print 'Users currently logged in\n'
             
-            for user in activeUsers:
-                self.send_message(event.source, user)
-                print user
+        # command to display all users currently logged into the channel
+        elif cmd == 'SCHEDULEUSER':
+            PrivateMessageHandler().showUsers(self, params, event)
+            
 
 
 
