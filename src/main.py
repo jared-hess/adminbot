@@ -34,6 +34,7 @@ def update_list(new_list):
         userFile.write(item + '\n')
     userFile.close()
     
+
 # this function performs a binary search on a list and returns the index of the item searched for
 def search(currentUsers, item):
     low = 0
@@ -56,61 +57,26 @@ def search(currentUsers, item):
     
 #Record Class (records times)
 #Should probably be moved to another file
+''' This class records the times users joined and left the adminbot chatroom '''
 class Record():
+    
     def login(self, user, time):
         #Record login time
         f = open(user,'a')
         f.write('Login: ' + time.strftime('%d/%m/%Y %H:%M') + '\n')
-        f.close()
-        return
+        f.close()   
+        return  
+    
     def logout(self, user, time):
         #Record logout time
         f = open(user,'a')
         f.write('Logout: ' + time.strftime('%d/%m/%Y %H:%M') + '\n')
         f.close()
-        return
+        return 
     
-    
-    
-class PrivateMessageHandler():
-    
-    def addUser(self, bot, params, event):
-        for item in params:
-                if item in userList:
-                    return "exists"
-                    bot.send_message(event.source, item + ' is already in user list!')
-                else:
-                    userList.append(item.rstrip())
-                    bot.send_message(event.source, item + ' was added to list!')   
-                update_list(userList)
-                
-                
-                
-        
-    
-    def deleteUser(self, bot, params, event):
-        for item in params:
-                if item in userList:
-                    userList.remove(item)
-                    bot.send_message(event.source, item + ' was removed from the list!')
-                else:
-                    bot.send_message(event.source, item + ' was not even in the list!')
-                update_list(userList)
-        return
-    
-    
-    
-    
-    def showUsers(self, bot, event):
-        bot.send_message(event.source, 'Users currently logged in:')
-        print 'Users currently logged in\n'
-            
-        for user in activeUsers:
-            bot.send_message(event.source, user)
-            print user
-            
-            
-            
+
+
+class ScheduleHandler():
             
     def schedule(self, bot, params, event):
         action = params[0].upper()
@@ -156,24 +122,67 @@ class PrivateMessageHandler():
                 days = ['MONDAY\n', 'TUESDAY\n', 'WEDNESDAY\n', 'THURSDAY\n', 'FRIDAY\n', 'SATURDAY\n', 'SUNDAY']
                 with open(params[1] + 'schedule.txt', 'w') as scheduleFile:
                     scheduleFile.writelines(days)
-                    
-            
-            
-            
-            
 
 
-            
+
+
+
+
+
+
+''' This class handles private message commands to add a user, delete a user and show users
+        currently logged into the irc channel '''
+class UserManager():
+    
+    def addUser(self, bot, params, nick):
+        for item in params:
+            if item in userList:
+                bot.send_message(nick, item + ' is already in user list!')
                 
+            else:
+                userList.append(item.rstrip())
+                bot.send_message(nick, item + ' was added to list!')   
         
-
-
-
-
-
-#AdminBot is a customized IRC bot that listens for certain behaviors in an IRC channel and can respond to commands given by administrator
-             
+        update_list(userList)
+        return 
+    
+    ''' @param nick - name of user who sent the private message
+        @param params - list of users to delete '''
+    def deleteUser(self, bot, params, nick):
+        
+        # error checking - for testing purposes
+        # check to see user's nickname is a string. If not, raise a TypeError
+        if not isinstance(nick, str):
+            raise TypeError
+        
+        for item in params:
+            if item in userList:
+                userList.remove(item)
+                bot.send_message(nick, item + ' was removed from the list!')
+                
+            else:
+                bot.send_message(nick, item + ' was not even in the list!')
+        
+        update_list(userList)
+        return 
+    
+    
+    
+    def showUsers(self, bot, nick):
+        bot.send_message(nick, 'Users currently logged in:')
+        print 'Users currently logged in\n'
             
+        for user in activeUsers:
+            bot.send_message(nick, user)
+            print user
+        
+    
+
+
+
+   
+#AdminBot is a customized IRC bot that listens for certain behaviors in an IRC channel and can respond to commands given by administrator
+                        
 class AdminBot(bot.SimpleBot):
     
     #Gets called when a user joins the chat
@@ -202,25 +211,26 @@ class AdminBot(bot.SimpleBot):
     #Defines how to handle private messages sent to the admin bot
     def on_private_message(self, event):
         msg = event.message.split()
+        
         cmd = msg[0].upper()
         params = msg[1:]
     
         #Add user command
         if cmd == 'ADDUSER':
-            PrivateMessageHandler().addUsers(self, params, event)
+            UserManager().addUser(self, params, event.source)
 
         #Delete user command
         elif cmd == 'DELUSER':
-            PrivateMessageHandler().deleteUsers(self, params, event)
+            UserManager().deleteUser(self, params, event.source)
         
         # command to display all users currently logged into the channel
         elif cmd == 'SHOWUSERS':
-            PrivateMessageHandler().showUsers(self, event)
+            UserManager().showUsers(self, event.source)
             
             
         # command to display all users currently logged into the channel
         elif cmd == 'SCHEDULE':
-            PrivateMessageHandler().schedule(self, params, event)
+            ScheduleHandler().schedule(self, params, event)
             
 
 
@@ -235,11 +245,3 @@ if __name__ == "__main__":
 
     # Start running the bot
     adminBot.start()
-
-
-
-
-   
-
-    
-
