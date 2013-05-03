@@ -74,7 +74,20 @@ class Record():
         f.close()
         return 
     
-
+    def checkLate(self, user, time):
+        with open(user.lower() + 'schedule.txt','r') as scheduleFile:
+                    # read a list of lines into data
+                    fileContents = scheduleFile.readlines()
+                    dayOfTheWeek = time.weekday()
+                    
+                    todaysSchedule = fileContents[dayOfTheWeek].split()
+                    startTime = todaysSchedule[1].split(':')
+                    hourDifference = time.hour - int(startTime[0])
+                    minuteDifference = time.minute - int(startTime[1])
+                    
+                    return [hourDifference, minuteDifference]
+                
+         
 
 class ScheduleHandler():
             
@@ -90,16 +103,12 @@ class ScheduleHandler():
             #endTime = currentDay + 2
             if timeFormat.match(params[3]) is None:
                 bot.send_message(event.source, 'Incorrect start time format')
-            else:
-                bot.send_message(event.source, 'Correct start time format')
             if timeFormat.match(params[4]) is None:
                 bot.send_message(event.source, 'Incorrect end time format')
-            else:
-                bot.send_message(event.source, 'Correct end time format')
             
             
             try:
-                with open(params[1] + 'schedule.txt','r') as scheduleFile:
+                with open(params[1].lower() + 'schedule.txt','r') as scheduleFile:
                     # read a list of lines into data
                     fileContents = scheduleFile.readlines()
                     
@@ -107,14 +116,13 @@ class ScheduleHandler():
                     for i in xrange(len(fileContents)):   
                     #for line in fileContents:
                         if currentDay in fileContents[i]:
-                            print "Found line"
                             fileContents[i] = currentDay + ' ' + params[3] + ' ' + params[4] + '\n'
-                            print fileContents[i]
+                            #print fileContents[i]
                             
                             
                     # and write everything back
-                with open(params[1] + 'schedule.txt', 'w') as scheduleFile:
-                    print fileContents
+                with open(params[1].lower() + 'schedule.txt', 'w') as scheduleFile:
+                    #print fileContents
                     scheduleFile.writelines( fileContents )
                     
             # file does not exist - create it
@@ -191,7 +199,15 @@ class AdminBot(bot.SimpleBot):
         #Passes user and login time to be recorded
         if event.source != self.nickname:
             self.send_message(event.target, "Welcome, " + event.source + "!")
-        Record.login(record, event.source, datetime.now())
+            Record.login(record, event.source, datetime.now())
+        
+            timeLate = Record.checkLate(record, event.source, datetime.now())
+            if timeLate[0] > -1:
+                if timeLate[1] > -1:
+                    sendString = event.source + " is late by " + str(timeLate[0]) + " hours and " + str(timeLate[1]) + " minutes"
+                    self.send_message(event.target, sendString)
+        
+        
         # once a user joins the chat, add user name to the activeUser list
         activeUsers.append(event.source)
         # sort the list
@@ -226,7 +242,6 @@ class AdminBot(bot.SimpleBot):
         # command to display all users currently logged into the channel
         elif cmd == 'SHOWUSERS':
             UserManager().showUsers(self, event.source)
-            
             
         # command to display all users currently logged into the channel
         elif cmd == 'SCHEDULE':
