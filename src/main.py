@@ -89,9 +89,9 @@ class Record():
                     return [hourDifference, minuteDifference]
     
     def checkAbsent(self, time):
-        missingUsers = list( (set(userList) - set(activeUsers)) - set(absentUsers))   #users who Aren't in chat right now
-        for user in missingUsers:
-            with open(user.lower() + 'schedule.txt','r') as scheduleFile:
+        missingUsers = list( (set(userList) - set(activeUsers)) - set(absentUsers))   #users who aren't in chat and aren't abset yet
+        for user in missingUsers: #For every user that isn't here
+            with open(user.lower() + 'schedule.txt','r') as scheduleFile: #Check schedule
                 fileContents = scheduleFile.readlines()
                 dayOfTheWeek = time.weekday()
                     
@@ -100,8 +100,8 @@ class Record():
                 hourDifference = time.hour - int(startTime[0])
                 minuteDifference = time.minute - int(startTime[1])
                 
-                if (hourDifference > 4):
-                    absentUsers.append(user)
+                if (hourDifference > 4): #if more than 4 hours late
+                    absentUsers.append(user) #count as absent
             
          
 
