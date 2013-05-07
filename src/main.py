@@ -81,6 +81,11 @@ class Record():
                     dayOfTheWeek = time.weekday()
                     
                     todaysSchedule = fileContents[dayOfTheWeek].split()
+                    
+                    # check to make sure a schedule exists for the current day
+                    if len(todaysSchedule) < 2:
+                        return
+                    
                     startTime = todaysSchedule[1].split(':')
                     hourDifference = time.hour - int(startTime[0])
                     minuteDifference = time.minute - int(startTime[1])
