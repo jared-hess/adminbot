@@ -8,15 +8,12 @@ adminBotServer = "irc.spotchat.org"     #IRC Server
 
 #Utility/Framework Imports
 import re
-import getpass
 import time
 from ircutils import bot, format
-import dokuwikixmlrpc
+#import dokuwikixml
 from datetime import datetime
 
 #Global Vars
-joinDict = {}   #Dictionary containing the last join time of users
-msgQ = []       #Queue containing the last 5 messages received in the channel the bot resides in
 userList = []   #List of the users
 activeUsers = [] #list of all users currently logged into the channel
 absentUsers = []#list of users who are more than 4 hours late
@@ -54,7 +51,16 @@ def search(currentUsers, item):
     return -1
     
     
-
+''' Exception class to call whenever any authentication error occurs '''
+class authenticationError(Exception):
+    def __init__(self, errorMsg):
+        self.errorMsg = errorMsg
+        
+    def __str__(self):
+        return repr(self.errorMsg)
+    
+    
+    
     
 #Record Class (records times)
 #Should probably be moved to another file
@@ -146,16 +152,71 @@ class ScheduleHandler():
                 days = ['MONDAY\n', 'TUESDAY\n', 'WEDNESDAY\n', 'THURSDAY\n', 'FRIDAY\n', 'SATURDAY\n', 'SUNDAY']
                 with open(params[1] + 'schedule.txt', 'w') as scheduleFile:
                     scheduleFile.writelines(days)
+    
+    
+    
+    def changePayPeriod(self, bot, theDate, nick):
+        # Make sure the user is authorized to change the pay period
+        try:
+            # open the file with name of administrators
+            adminFile = open('admin.txt', 'r')
+            administrators = adminFile.readlines()
+                
+            # check if the user is listed as an administrator
+            if nick not in administrators:
+                bot.send_message(nick, 'You are not authorized to change the pay period')
+                raise authenticationError
+                return
+    
+        except IOError as err:
+            print err
+            bot.send_message(nick, adminBotName + ' has encountered some errors. Please try again!')
+            return
+            
+        finally:
+            if adminFile is not None:
+                adminFile.close()
+        
+        # Make sure the date is in the correct format (mm/dd/yy)
+        dateMatch = re.match('\d+/\d+/\d+', theDate)
+        
+        if dateMatch is None:
+            bot.send_message(nick, 'Date has incorrect format. Enter date in mm/dd/yy format')
+            raise SyntaxError
+            return 
+        
+        # make sure the date is a valid date
+        try:
+            dateFormat = datetime.strptime(theDate, '%m/%d/%y')
+        
+        except ValueError as err:
+            bot.send_message(nick, nick + ", the date you entered is not valid")
+            print err
+            return
+            
+        # get the current date
+        currentDate = datetime.now()
+        
+        # The pay period date cannot be less than the current date  
+        if(dateFormat < currentDate):
+            bot.send_message(nick, 'The new pay period cannot be less than today\'s date ' + currentDate.strftime("%A, %d %B %Y %I:%M%p"))
+            raise ValueError
+            return 
+        
+        # otherwise, the user is now cleared to change the pay period
+        # rather than overwriting file each time, read the file and check the current pay period
+        # if it is the same with the new pay period, inform the user and make no changes
+        with open('payPeriod.txt', 'w') as payPeriod:
+            payPeriod.writeLine(dateFormat.strftime("%A, %d %B %Y %I:%M%p"))
+        
+        bot.send_message(nick, 'Pay period end date was successfully changed')
+        return True
 
 
 
 
-
-
-
-
-''' This class handles private message commands to add a user, delete a user and show users
-        currently logged into the irc channel '''
+'''   This class handles private message commands to add a user, delete a user and show users currently logged into the irc channel '''
+        
 class UserManager():
     
     def addUser(self, bot, params, nick):
@@ -204,7 +265,6 @@ class UserManager():
 
 
 
-   
 #AdminBot is a customized IRC bot that listens for certain behaviors in an IRC channel and can respond to commands given by administrator
                         
 class AdminBot(bot.SimpleBot):
@@ -246,7 +306,7 @@ class AdminBot(bot.SimpleBot):
         
         cmd = msg[0].upper()
         params = msg[1:]
-    
+        
         #Add user command
         if cmd == 'ADDUSER':
             UserManager().addUser(self, params, event.source)
@@ -262,6 +322,13 @@ class AdminBot(bot.SimpleBot):
         # command to display all users currently logged into the channel
         elif cmd == 'SCHEDULE':
             ScheduleHandler().schedule(self, params, event)
+            
+        elif cmd == 'CHANGEPERIODENDDATE':
+            ScheduleHandler().changePayPeriod(self, params, event.source)
+        
+        # if command is invalid, send error message and throw an exception
+        else:
+            pass
             
 
 
