@@ -19,6 +19,7 @@ joinDict = {}   #Dictionary containing the last join time of users
 msgQ = []       #Queue containing the last 5 messages received in the channel the bot resides in
 userList = []   #List of the users
 activeUsers = [] #list of all users currently logged into the channel
+absentUsers = []#list of users who are more than 4 hours late
 
 bufsize = 0
 userFile = open('userlist.txt', 'r')
@@ -86,7 +87,22 @@ class Record():
                     minuteDifference = time.minute - int(startTime[1])
                     
                     return [hourDifference, minuteDifference]
+    
+    def checkAbsent(self, time):
+        missingUsers = list( (set(userList) - set(activeUsers)) - set(absentUsers))   #users who Aren't in chat right now
+        for user in missingUsers:
+            with open(user.lower() + 'schedule.txt','r') as scheduleFile:
+                fileContents = scheduleFile.readlines()
+                dayOfTheWeek = time.weekday()
+                    
+                todaysSchedule = fileContents[dayOfTheWeek].split()
+                startTime = todaysSchedule[1].split(':')
+                hourDifference = time.hour - int(startTime[0])
+                minuteDifference = time.minute - int(startTime[1])
                 
+                if (hourDifference > 4):
+                    absentUsers.append(user)
+            
          
 
 class ScheduleHandler():
