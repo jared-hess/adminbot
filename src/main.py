@@ -1,8 +1,6 @@
 #Utility/Framework Imports
-import time
-from ircutils import bot, format
+from ircutils import bot
 #import dokuwikixml
-from datetime import datetime
 from record import *
 from usermanager import *
 from schedulehandler import *
@@ -21,9 +19,9 @@ userList = userFile.readlines()
 userList = map(lambda s: s.strip(), userList)
 
 
-def update_list(new_list):
+def updateList(newList):
     userFile = open('userlist.txt', 'w', bufsize)
-    for item in new_list:
+    for item in newList:
         userFile.write(item + '\n')
     userFile.close()
     
@@ -50,15 +48,36 @@ def search(currentUsers, item):
                         
 class AdminBot(bot.SimpleBot):
     
+    def checkAuthentication(self, nick):
+        try:
+            # open the file with name of administrators
+            adminFile = open('admin.txt', 'r')
+            administrators = adminFile.readlines()
+                
+            # check if the user is listed as an administrator
+            if nick not in administrators:
+                raise AuthenticationError
+                return False
+            else:
+                return True
+    
+        except IOError as err:
+            print err
+            self.send_message(nick, adminBotName + ' has encountered some errors. Please try again!')
+            return False
+            
+        finally:
+            if adminFile is not None:
+                adminFile.close()
+    
     #Gets called when a user joins the chat
     def on_join(self, event):
-        record = Record()
         #Passes user and login time to be recorded
         if event.source != self.nickname:
             self.send_message(event.target, "Welcome, " + event.source + "!")
-            Record.login(record, event.source, datetime.now())
+            Record().login(event.source, datetime.now())
         
-            timeLate = Record.checkLate(record, event.source, datetime.now())
+            timeLate = Record().checkLate(event.source, datetime.now())
             if timeLate[0] > -1:
                 if timeLate[1] > -1:
                     sendString = event.source + " is late by " + str(timeLate[0]) + " hours and " + str(timeLate[1]) + " minutes"
@@ -73,9 +92,8 @@ class AdminBot(bot.SimpleBot):
     
     #Gets called when a user leaves chat
     def on_quit(self, event):
-        record = Record()
         #Passes user and logout time to be recorded
-        Record.logout(record, event.source, datetime.now())
+        Record().logout(event.source, datetime.now())
         # search for the user name to delete from the list once the user leaves the chat
         index = search(activeUsers, event.source)
         del activeUsers[index]
@@ -88,13 +106,17 @@ class AdminBot(bot.SimpleBot):
         cmd = msg[0].upper()
         params = msg[1:]
         
+        if not self.checkAuthentication(event.source):
+            self.send_message(event.source, 'You are not authorized to change the pay period')
+            return
+        
         #Add user command
         if cmd == 'ADDUSER':
-            UserManager().addUser(self, params, event.source)
+            UserManager().addUser(self, params, event.source, userList)
 
         #Delete user command
         elif cmd == 'DELUSER':
-            UserManager().deleteUser(self, params, event.source)
+            UserManager().deleteUser(self, params, event.source, userList)
         
         # command to display all users currently logged into the channel
         elif cmd == 'SHOWUSERS':
@@ -103,9 +125,9 @@ class AdminBot(bot.SimpleBot):
         # command to display all users currently logged into the channel
         elif cmd == 'SCHEDULE':
             if msg[1].upper() == 'ADD':
-                ScheduleHandler().addSchedule(self, params, event)
+                ScheduleHandler().addSchedule(self, params, event.source)
             if msg[1].upper() == 'REMOVE':
-                ScheduleHandler().removeSchedule(self, params, event)
+                ScheduleHandler().removeSchedule(self, params, event.source)
             
         elif cmd == 'CHANGEPERIODENDDATE':
             ScheduleHandler().changePayPeriod(self, params, event.source)

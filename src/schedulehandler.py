@@ -5,7 +5,7 @@ from config import adminBotName
 
 class ScheduleHandler():
             
-    def addSchedule(self, bot, params, event):
+    def addSchedule(self, bot, params, nick):
         #action = params[0].upper()
         currentDay = params[2].upper()
         
@@ -16,9 +16,9 @@ class ScheduleHandler():
         #startTime = currentDay + 1
         #endTime = currentDay + 2
         if timeFormat.match(params[3]) is None:
-            bot.send_message(event.source, 'Incorrect start time format')
+            bot.send_message(nick, 'Incorrect start time format')
         if timeFormat.match(params[4]) is None:
-            bot.send_message(event.source, 'Incorrect end time format')
+            bot.send_message(nick, 'Incorrect end time format')
             
             
         try:
@@ -44,11 +44,11 @@ class ScheduleHandler():
             days = ['MONDAY\n', 'TUESDAY\n', 'WEDNESDAY\n', 'THURSDAY\n', 'FRIDAY\n', 'SATURDAY\n', 'SUNDAY']
             with open(params[1] + 'schedule.txt', 'w') as scheduleFile:
                 scheduleFile.writelines(days)
-            ScheduleHandler.addSchedule(bot, params, event)
+            ScheduleHandler.addSchedule(bot, params, nick)
         
         
         
-    def removeSchedule(self, bot, params, event):
+    def removeSchedule(self, bot, params, nick):
         #action = params[0].upper()
         currentDay = params[2].upper()
         try:
@@ -72,27 +72,6 @@ class ScheduleHandler():
 
 
     def changePayPeriod(self, bot, theDate, nick):
-        # Make sure the user is authorized to change the pay period
-        try:
-            # open the file with name of administrators
-            adminFile = open('admin.txt', 'r')
-            administrators = adminFile.readlines()
-                
-            # check if the user is listed as an administrator
-            if nick not in administrators:
-                bot.send_message(nick, 'You are not authorized to change the pay period')
-                raise authenticationError
-                return
-    
-        except IOError as err:
-            print err
-            bot.send_message(nick, adminBotName + ' has encountered some errors. Please try again!')
-            return
-            
-        finally:
-            if adminFile is not None:
-                adminFile.close()
-        
         # Make sure the date is in the correct format (mm/dd/yy)
         dateMatch = re.match('\d+/\d+/\d+', theDate)
         
