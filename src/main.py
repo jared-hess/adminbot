@@ -48,31 +48,41 @@ def search(currentUsers, item):
                         
 class AdminBot(bot.SimpleBot):
     
-    def checkAuthentication(self, nick):
+    def getAdministrators(self):
         try:
             # open the file with name of administrators
             adminFile = open('admin.txt', 'r')
             administrators = adminFile.readlines()
-            #Get rid of new lines
             administrators = map(lambda s: s.strip(), administrators)
-                
+
+            return administrators
+        
+        except IOError as err:
+            print err
+            #self.send_message(nick, adminBotName + ' has encountered some errors. Please try again!')
+            return False
+        
+        finally:
+            if adminFile is not None:
+                adminFile.close()
+    
+    
+    def checkAuthentication(self, nick):
+        try:
+            administrators = self.getAdministrators()
+              
             # check if the user is listed as an administrator
             if nick not in administrators:
                 raise AuthenticationError("Not an admin")
             else:
                 return True
     
-        except IOError as err:
-            print err
-            self.send_message(nick, adminBotName + ' has encountered some errors. Please try again!')
-            return False
-        
+       
         except AuthenticationError as err:
+            print err
             return False
             
-        finally:
-            if adminFile is not None:
-                adminFile.close()
+        
     
     #Gets called when a user joins the chat
     def on_join(self, event):
@@ -86,8 +96,10 @@ class AdminBot(bot.SimpleBot):
                 self.send_message(event.target, event.source + " is not scheduled to work today")
             elif timeLate[0] > -1:
                 if timeLate[1] > -1:
+                    # employee is late, send message to all admins
                     sendString = event.source + " is late by " + str(timeLate[0]) + " hours and " + str(timeLate[1]) + " minutes"
-                    self.send_message(event.target, sendString)
+                    for admin in self.getAdministrators():
+                        self.send_message(admin, sendString)
         
         
         # once a user joins the chat, add user name to the activeUser list
