@@ -3,10 +3,10 @@
 class UserManager():
     
     
-    def update_list(self, new_list):
+    def updateList(self, newList):
         bufsize = 0
         userFile = open('userlist.txt', 'w', bufsize)
-        for item in new_list:
+        for item in newList:
             userFile.write(item + '\n')
         userFile.close()
     
@@ -20,7 +20,7 @@ class UserManager():
                 userList.append(item.rstrip())
                 bot.send_message(nick, item + ' was added to list!')   
         
-        self.update_list(userList)
+        self.updateList(userList)
         return 
     
     ''' @param nick - name of user who sent the private message
@@ -40,7 +40,7 @@ class UserManager():
             else:
                 bot.send_message(nick, item + ' was not even in the list!')
         
-        self.update_list(userList)
+        self.updateList(userList)
         return 
     
     

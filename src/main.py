@@ -4,7 +4,7 @@ from ircutils import bot
 from record import *
 from usermanager import *
 from schedulehandler import *
-from config import *
+import config
 
 #Global Vars
 userList = []   #List of the users
@@ -53,17 +53,21 @@ class AdminBot(bot.SimpleBot):
             # open the file with name of administrators
             adminFile = open('admin.txt', 'r')
             administrators = adminFile.readlines()
+            #Get rid of new lines
+            administrators = map(lambda s: s.strip(), administrators)
                 
             # check if the user is listed as an administrator
             if nick not in administrators:
-                raise AuthenticationError
-                return False
+                raise AuthenticationError("Not an admin")
             else:
                 return True
     
         except IOError as err:
             print err
             self.send_message(nick, adminBotName + ' has encountered some errors. Please try again!')
+            return False
+        
+        except AuthenticationError as err:
             return False
             
         finally:
@@ -78,7 +82,9 @@ class AdminBot(bot.SimpleBot):
             Record().login(event.source, datetime.now())
         
             timeLate = Record().checkLate(event.source, datetime.now())
-            if timeLate[0] > -1:
+            if timeLate == None:
+                self.send_message(event.target, event.source + " is not scheduled to work today")
+            elif timeLate[0] > -1:
                 if timeLate[1] > -1:
                     sendString = event.source + " is late by " + str(timeLate[0]) + " hours and " + str(timeLate[1]) + " minutes"
                     self.send_message(event.target, sendString)
@@ -115,12 +121,12 @@ class AdminBot(bot.SimpleBot):
             UserManager().addUser(self, params, event.source, userList)
 
         #Delete user command
-        elif cmd == 'DELUSER':
+        elif cmd == 'DELETEUSER':
             UserManager().deleteUser(self, params, event.source, userList)
         
         # command to display all users currently logged into the channel
         elif cmd == 'SHOWUSERS':
-            UserManager().showUsers(self, event.source)
+            UserManager().showUsers(self, event.source, activeUsers)
             
         # command to display all users currently logged into the channel
         elif cmd == 'SCHEDULE':
@@ -142,10 +148,10 @@ class AdminBot(bot.SimpleBot):
 if __name__ == "__main__":
     # Create an instance of the bot
     # We set the bot's nickname here
-    adminBot = AdminBot( adminBotName )
+    adminBot = AdminBot( config.adminBotName )
     
     # Let's connect to the host
-    adminBot.connect(adminBotServer, channel=[ adminBotChannel ])
+    adminBot.connect(config.adminBotServer, channel=[ config.adminBotChannel ])
 
     # Start running the bot
     adminBot.start()

@@ -6,15 +6,19 @@ from config import adminBotName
 class ScheduleHandler():
             
     def addSchedule(self, bot, params, nick):
-        #action = params[0].upper()
-        currentDay = params[2].upper()
         
-        #if action == 'ADD':
+        if len(params) > 5:
+            bot.send_message(nick, "Too many parameters!")
+            return
+        elif len (params) < 5:
+            bot.send_message(nick, "Not enough parameters!")
+            return
+
+        currentDay = params[2].upper()
+
             
         # check syntax of time parameters
         timeFormat = re.compile(r'[0-2][0-9]\:[0-5][0-9]')
-        #startTime = currentDay + 1
-        #endTime = currentDay + 2
         if timeFormat.match(params[3]) is None:
             bot.send_message(nick, 'Incorrect start time format')
         if timeFormat.match(params[4]) is None:
@@ -28,15 +32,11 @@ class ScheduleHandler():
                     
                 # find correct line in file  
                 for i in xrange(len(fileContents)):   
-                #for line in fileContents:
                     if currentDay in fileContents[i]:
-                        fileContents[i] = currentDay + ' ' + params[3] + ' ' + params[4] + '\n'
-                        #print fileContents[i]
-                            
+                        fileContents[i] = currentDay + ' ' + params[3] + ' ' + params[4] + '\n'                            
                             
                 # and write everything back
             with open(params[1].lower() + 'schedule.txt', 'w') as scheduleFile:
-                #print fileContents
                 scheduleFile.writelines( fileContents )
                     
         # file does not exist - create it
@@ -44,12 +44,12 @@ class ScheduleHandler():
             days = ['MONDAY\n', 'TUESDAY\n', 'WEDNESDAY\n', 'THURSDAY\n', 'FRIDAY\n', 'SATURDAY\n', 'SUNDAY']
             with open(params[1] + 'schedule.txt', 'w') as scheduleFile:
                 scheduleFile.writelines(days)
+            #rerun addSchedule    
             ScheduleHandler.addSchedule(bot, params, nick)
         
         
         
     def removeSchedule(self, bot, params, nick):
-        #action = params[0].upper()
         currentDay = params[2].upper()
         try:
             with open(params[1].lower() + 'schedule.txt','r') as scheduleFile:
@@ -58,15 +58,13 @@ class ScheduleHandler():
                     
                 # find correct line in file  
                 for i in xrange(len(fileContents)):   
-                #for line in fileContents:
                     if currentDay in fileContents[i]:
                         fileContents[i] = currentDay + '\n'
 
                 with open(params[1].lower() + 'schedule.txt', 'w') as scheduleFile:
-                    #print fileContents
                     scheduleFile.writelines( fileContents )
                     
-        # file does not exist - create it
+        # file does not exist
         except IOError:
             return
 
