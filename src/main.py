@@ -149,7 +149,7 @@ class AdminBot(bot.SimpleBot):
                 ScheduleHandler().removeSchedule(self, params, event.source)
             
         elif cmd == 'CHANGEPERIODENDDATE':
-            ScheduleHandler().changePayPeriod(self, params, event.source)
+            ScheduleHandler().changePayPeriod(self, params[0], event.source)
         
         # if command is invalid, send error message and throw an exception
         else:
