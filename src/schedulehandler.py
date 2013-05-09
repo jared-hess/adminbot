@@ -69,11 +69,36 @@ class ScheduleHandler():
             return
 
 
+    ''' This function changes the pay period end date '''
     def changePayPeriod(self, bot, theDate, nick):
+        # Make sure the user is authorized to change the pay period
+        try:
+            # open the file with name of administrators
+            adminFile = open('admin.txt', 'r')
+            administrators = adminFile.readlines()
+            
+            # get rid of new lines and convert to uppercase
+            administrators = map(lambda s: s.strip(), administrators)
+            administrators = map(lambda s: s.upper(), administrators)
+            
+            # check if the user is listed as an administrator
+            if str.upper(nick) not in administrators:
+                bot.send_message(nick, 'You are not authorized to change the pay period')
+                raise AuthenticationError('You are not authorized to change the pay period')
+                return 
+    
+        except IOError as err:
+            print err
+            bot.send_message(nick, adminBotName + ' has encountered some errors. Please try again!')
+            return
+            
+        finally:
+            if adminFile is not None:
+                adminFile.close()
+        
         # Make sure the date is in the correct format (mm/dd/yy)
-        dateFormat = re.compile(r'\d+/\d+/\d+')
-        dateMatch = dateFormat.match(theDate[0])
-     
+        dateMatch = re.match('\d+/\d+/\d+', theDate)
+        
         if dateMatch is None:
             bot.send_message(nick, 'Date has incorrect format. Enter date in mm/dd/yy format')
             raise SyntaxError
@@ -81,10 +106,10 @@ class ScheduleHandler():
         
         # make sure the date is a valid date
         try:
-            dateFormat = datetime.strptime(theDate[0], '%m/%d/%y')
+            dateFormat = datetime.strptime(theDate, '%m/%d/%y')
         
         except ValueError as err:
-            bot.send_message(nick, nick + ", the date you entered is not valid")
+            bot.send_message(nick, nick + ', the date you entered is not valid')
             print err
             return
             
@@ -95,13 +120,13 @@ class ScheduleHandler():
         if(dateFormat < currentDate):
             bot.send_message(nick, 'The new pay period cannot be less than today\'s date ' + currentDate.strftime("%A, %d %B %Y %I:%M%p"))
             raise ValueError
-            return 
         
         # otherwise, the user is now cleared to change the pay period
         # rather than overwriting file each time, read the file and check the current pay period
         # if it is the same with the new pay period, inform the user and make no changes
         with open('payPeriod.txt', 'w') as payPeriod:
-            payPeriod.writelines(dateFormat.strftime("%A, %d %B %Y %I:%M%p"))
+            payPeriod.write(dateFormat.strftime("%A, %d %B %Y %I:%M%p"))
         
-        bot.send_message(nick, 'Pay period end date was successfully changed')
+        bot.send_message(nick, 'Pay period end date was successfully changed to ' + str(dateFormat.strftime("%A, %d %B %Y %I:%M%p")))
         return True
+    
