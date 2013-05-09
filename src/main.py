@@ -129,10 +129,6 @@ class AdminBot(bot.SimpleBot):
         cmd = msg[0].upper()
         params = msg[1:]
         
-        if not self.checkAuthentication(event.source):
-            self.send_message(event.source, 'You are not authorized to change the pay period')
-            return
-        
         #Add user command
         if cmd == 'ADDUSER':
             UserManager().addUser(self, params, event.source, userList)
@@ -157,7 +153,7 @@ class AdminBot(bot.SimpleBot):
         
         # if command is invalid, send error message and throw an exception
         else:
-            pass
+            self.send_message(event.source, "The command you entered is not recognized")
             
 
 
