@@ -45,7 +45,7 @@ class ScheduleHandler():
             with open(params[1] + 'schedule.txt', 'w') as scheduleFile:
                 scheduleFile.writelines(days)
             #rerun addSchedule    
-            ScheduleHandler.addSchedule(bot, params, nick)
+            ScheduleHandler().addSchedule(bot, params, nick)
         
         
         
@@ -71,8 +71,9 @@ class ScheduleHandler():
 
     def changePayPeriod(self, bot, theDate, nick):
         # Make sure the date is in the correct format (mm/dd/yy)
-        dateMatch = re.match('\d+/\d+/\d+', theDate)
-        
+        dateFormat = re.compile(r'\d+/\d+/\d+')
+        dateMatch = dateFormat.match(theDate[0])
+     
         if dateMatch is None:
             bot.send_message(nick, 'Date has incorrect format. Enter date in mm/dd/yy format')
             raise SyntaxError
@@ -80,7 +81,7 @@ class ScheduleHandler():
         
         # make sure the date is a valid date
         try:
-            dateFormat = datetime.strptime(theDate, '%m/%d/%y')
+            dateFormat = datetime.strptime(theDate[0], '%m/%d/%y')
         
         except ValueError as err:
             bot.send_message(nick, nick + ", the date you entered is not valid")
@@ -100,7 +101,7 @@ class ScheduleHandler():
         # rather than overwriting file each time, read the file and check the current pay period
         # if it is the same with the new pay period, inform the user and make no changes
         with open('payPeriod.txt', 'w') as payPeriod:
-            payPeriod.writeLine(dateFormat.strftime("%A, %d %B %Y %I:%M%p"))
+            payPeriod.writelines(dateFormat.strftime("%A, %d %B %Y %I:%M%p"))
         
         bot.send_message(nick, 'Pay period end date was successfully changed')
         return True

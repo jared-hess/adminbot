@@ -1,6 +1,6 @@
     
 ''' Exception class to call whenever any authentication error occurs '''
-class authenticationError(Exception):
+class AuthenticationError(Exception):
     def __init__(self, errorMsg):
         self.errorMsg = errorMsg
         

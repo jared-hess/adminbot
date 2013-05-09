@@ -93,7 +93,8 @@ class AdminBot(bot.SimpleBot):
         
             timeLate = Record().checkLate(event.source, datetime.now())
             if timeLate == None:
-                self.send_message(event.target, event.source + " is not scheduled to work today")
+                for admin in self.getAdministrators():
+                        self.send_message(admin, event.source + " is not scheduled to work today")
             elif timeLate[0] > -1:
                 if timeLate[1] > -1:
                     # employee is late, send message to all admins
@@ -115,6 +116,10 @@ class AdminBot(bot.SimpleBot):
         # search for the user name to delete from the list once the user leaves the chat
         index = search(activeUsers, event.source)
         del activeUsers[index]
+        return
+    
+    def on_part(self, event):
+        self.on_quit(event)
         return
     
     #Defines how to handle private messages sent to the admin bot

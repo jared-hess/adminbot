@@ -17,24 +17,28 @@ class Record():
         return 
     
     def checkLate(self, user, time):
-        with open(user.lower() + 'schedule.txt','r') as scheduleFile:
-                    # read a list of lines into data
-                    fileContents = scheduleFile.readlines()
-                    dayOfTheWeek = time.weekday()
+        try:
+            with open(user.lower() + 'schedule.txt','r') as scheduleFile:
+                # read a list of lines into data
+                fileContents = scheduleFile.readlines()
+                dayOfTheWeek = time.weekday()
                     
-                    todaysSchedule = fileContents[dayOfTheWeek].split()
+                todaysSchedule = fileContents[dayOfTheWeek].split()
                     
-                    # check to make sure a schedule exists for the current day
-                    if len(todaysSchedule) < 2:
-                        return
+                # check to make sure a schedule exists for the current day
+                if len(todaysSchedule) < 2:
+                    return
                     
-                    startTime = todaysSchedule[1].split(':')
-                    hourDifference = time.hour - int(startTime[0])
-                    minuteDifference = time.minute - int(startTime[1])
+                startTime = todaysSchedule[1].split(':')
+                hourDifference = time.hour - int(startTime[0])
+                minuteDifference = time.minute - int(startTime[1])
                     
-                    return [hourDifference, minuteDifference]
-    
-    def checkAbsent(self, time, userList, activeUsers, absentUsers):
+                return [hourDifference, minuteDifference]
+        
+        except IOError:
+            return
+
+    def checkAbssent(self, time, userList, activeUsers, absentUsers):
         missingUsers = list( (set(userList) - set(activeUsers)) - set(absentUsers))   #users who aren't in chat and aren't abset yet
         for user in missingUsers: #For every user that isn't here
             with open(user.lower() + 'schedule.txt','r') as scheduleFile: #Check schedule
