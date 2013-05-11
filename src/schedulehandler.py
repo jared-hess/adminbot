@@ -111,6 +111,7 @@ class ScheduleHandler():
         except ValueError as err:
             bot.send_message(nick, nick + ', the date you entered is not valid')
             print err
+            raise ValueError
             return
             
         # get the current date
@@ -120,6 +121,7 @@ class ScheduleHandler():
         if(dateFormat < currentDate):
             bot.send_message(nick, 'The new pay period cannot be less than today\'s date ' + currentDate.strftime("%A, %d %B %Y %I:%M%p"))
             raise ValueError
+            return
         
         # otherwise, the user is now cleared to change the pay period
         # rather than overwriting file each time, read the file and check the current pay period
