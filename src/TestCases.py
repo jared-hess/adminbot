@@ -1,4 +1,4 @@
-from usermanager import *
+from usermanager import UserManager
 from schedulehandler import ScheduleHandler
 from authenticationerror import AuthenticationError
 from main import AdminBot
@@ -11,6 +11,7 @@ class BotTestCase(unittest.TestCase):
     def setUp(self):
         self.userManager = UserManager()
         self.adminbot = AdminBot(config.adminBotName)
+        self.adminbot.connect(config.adminBotServer, channel=[ config.adminBotChannel ])
         self.userList = ['James', 'Maya', 'Fred']
         self.schedule = ScheduleHandler()
     
@@ -22,7 +23,7 @@ class BotTestCase(unittest.TestCase):
         self.assertRaises(AuthenticationError, self.schedule.changePayPeriod, self.adminbot, '05/05/13', 'Steve')
         
     def test_changePayPeriod_raises_SyntaxError_if_Date_is_not_in_the_correct_format_but_user_is_authorized(self):
-        self.assertRaises(SyntaxError, self.schedule.changePayPeriod, self.adminbot, '07\08\13', 'Ife')
+        self.assertRaises(SyntaxError, self.schedule.changePayPeriod, self.adminbot, '07\\08\\13', 'Ife')
     
     def test_changePayPeriod_raises_ValueError_date_is_in_correct_format_but_day_is_greater_than_31(self):
         self.assertRaises(ValueError, self.schedule.changePayPeriod, self.adminbot, '05/56/13', 'Ife')
@@ -35,6 +36,12 @@ class BotTestCase(unittest.TestCase):
     
     def test_changePayPeriod_returns_True_if_user_is_authorized_date_format_is_correct_date_is_valid(self):
         self.assertTrue(self.schedule.changePayPeriod(self.adminbot, '07/14/15', 'Jared'))
+    
+    def tearDown(self):
+        self.adminbot = None
+        self.schedule = None
+        self.userManager = None
+        self.userList = None
     
     
 # run the tests
